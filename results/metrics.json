@@ -1,66 +1,426 @@
 {
   "dataset": {
-    "name": "Appliances Energy Prediction",
+    "name": "UCI Appliances Energy Prediction",
+    "framing": "AI energy intelligence for buildings",
+    "intended_user": "A building occupant or facilities manager",
     "source": "UCI Machine Learning Repository",
     "source_url": "https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction",
     "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "building_type": "One low-energy residential building; not school-specific data",
     "raw_rows": 19735,
     "cleaned_rows": 19735,
     "modeling_rows": 18727,
     "measurement_interval_minutes": 10,
+    "target": "Appliances energy consumption",
     "energy_unit": "Wh per 10-minute interval",
     "date_range": {
       "start": "2016-01-11T17:00:00",
       "end": "2016-05-27T18:00:00"
     }
   },
-  "split": {
-    "method": "chronological 80/20 split; no shuffling",
-    "train_rows": 14981,
-    "test_rows": 3746,
-    "train_start": "2016-01-18T17:00:00",
-    "train_end": "2016-05-01T17:40:00",
-    "test_start": "2016-05-01T17:50:00",
-    "test_end": "2016-05-27T18:00:00"
+  "split_method": "chronological 70% train / 15% validation / 15% test; no shuffling",
+  "train_period": {
+    "rows": 13108,
+    "start": "2016-01-18T17:00:00",
+    "end": "2016-04-18T17:30:00"
   },
-  "models": {
-    "Baseline": {
-      "mae_wh": 46.14928940075763,
-      "rmse_wh": 84.15885389457519
-    },
+  "validation_period": {
+    "rows": 2809,
+    "start": "2016-04-18T17:40:00",
+    "end": "2016-05-08T05:40:00"
+  },
+  "test_period": {
+    "rows": 2810,
+    "start": "2016-05-08T05:50:00",
+    "end": "2016-05-27T18:00:00"
+  },
+  "validation_model_comparison": {
     "Linear Regression": {
-      "mae_wh": 45.35705104991811,
-      "rmse_wh": 79.85783581397585
+      "mae_wh": 27.076883159985876,
+      "rmse_wh": 60.93368256980704,
+      "train_mae_wh": 30.710835247453282,
+      "train_rmse_wh": 67.27324030397405,
+      "validation_minus_train_rmse_wh": -6.339557734167009,
+      "variant": "scaled",
+      "feature_set": "cyclic_plus_recent_history",
+      "feature_columns": [
+        "hour_sin",
+        "hour_cos",
+        "day_of_week_sin",
+        "day_of_week_cos",
+        "month",
+        "is_weekend",
+        "previous_outdoor_temperature_c",
+        "previous_outdoor_humidity_pct",
+        "previous_hour_consumption",
+        "previous_day_same_hour",
+        "rolling_24h_average",
+        "rolling_7day_average",
+        "previous_interval_consumption",
+        "rolling_1h_average",
+        "rolling_6h_average"
+      ],
+      "hyperparameters": {}
     },
     "Random Forest": {
-      "mae_wh": 65.77893582726819,
-      "rmse_wh": 97.52839175955711
+      "mae_wh": 27.412200069909407,
+      "rmse_wh": 58.50609303449747,
+      "train_mae_wh": 24.55168613962898,
+      "train_rmse_wh": 53.487889697288026,
+      "validation_minus_train_rmse_wh": 5.018203337209442,
+      "variant": "regularized",
+      "feature_set": "cyclic_plus_recent_history",
+      "feature_columns": [
+        "hour_sin",
+        "hour_cos",
+        "day_of_week_sin",
+        "day_of_week_cos",
+        "month",
+        "is_weekend",
+        "previous_outdoor_temperature_c",
+        "previous_outdoor_humidity_pct",
+        "previous_hour_consumption",
+        "previous_day_same_hour",
+        "rolling_24h_average",
+        "rolling_7day_average",
+        "previous_interval_consumption",
+        "rolling_1h_average",
+        "rolling_6h_average"
+      ],
+      "hyperparameters": {
+        "n_estimators": 300,
+        "max_depth": 10,
+        "min_samples_leaf": 8,
+        "max_features": 0.8
+      }
     },
     "Gradient Boosting": {
-      "mae_wh": 59.479508972401646,
-      "rmse_wh": 86.73859084550928
+      "mae_wh": 25.888806629576813,
+      "rmse_wh": 59.625764343943516,
+      "train_mae_wh": 29.171467503015062,
+      "train_rmse_wh": 65.0217404111604,
+      "validation_minus_train_rmse_wh": -5.395976067216878,
+      "variant": "regularized",
+      "feature_set": "recent_history",
+      "feature_columns": [
+        "hour",
+        "minute",
+        "day_of_week",
+        "month",
+        "is_weekend",
+        "previous_outdoor_temperature_c",
+        "previous_outdoor_humidity_pct",
+        "previous_hour_consumption",
+        "previous_day_same_hour",
+        "rolling_24h_average",
+        "rolling_7day_average",
+        "previous_interval_consumption",
+        "rolling_1h_average",
+        "rolling_6h_average"
+      ],
+      "hyperparameters": {
+        "n_estimators": 180,
+        "learning_rate": 0.035,
+        "max_depth": 2,
+        "min_samples_leaf": 10,
+        "max_features": null,
+        "subsample": 0.8
+      }
     }
   },
-  "selection_rule": "Lowest test RMSE; test MAE breaks an exact RMSE tie",
-  "best_model": "Linear Regression",
-  "anomaly_detection": {
-    "method": "95th percentile of positive residuals",
-    "threshold_source": "latest 20% of the training period",
-    "fit_period_start": "2016-01-18T17:00:00",
-    "fit_period_end": "2016-04-10T22:10:00",
-    "calibration_period_start": "2016-04-10T22:20:00",
-    "calibration_period_end": "2016-05-01T17:40:00",
-    "calibration_rows": 2997,
-    "positive_calibration_residuals": 753,
-    "threshold_wh": 411.94520984775613,
-    "comparison": "positive residual strictly greater than threshold",
-    "test_anomaly_count": 24,
-    "test_anomaly_rate": 0.006406833956219968,
-    "interpretation": "Unexpectedly high consumption requiring investigation; not proof of energy waste."
+  "selected_model": {
+    "name": "Random Forest",
+    "selection_rule": "Lowest validation RMSE; validation MAE breaks an exact RMSE tie",
+    "variant": "regularized",
+    "feature_set": "cyclic_plus_recent_history",
+    "feature_columns": [
+      "hour_sin",
+      "hour_cos",
+      "day_of_week_sin",
+      "day_of_week_cos",
+      "month",
+      "is_weekend",
+      "previous_outdoor_temperature_c",
+      "previous_outdoor_humidity_pct",
+      "previous_hour_consumption",
+      "previous_day_same_hour",
+      "rolling_24h_average",
+      "rolling_7day_average",
+      "previous_interval_consumption",
+      "rolling_1h_average",
+      "rolling_6h_average"
+    ],
+    "hyperparameters": {
+      "n_estimators": 300,
+      "max_depth": 10,
+      "min_samples_leaf": 8,
+      "max_features": 0.8
+    },
+    "refit_before_test": "Refitted on combined train + validation data after selection"
+  },
+  "final_test_baseline": {
+    "mae_wh": 46.6536921708185,
+    "rmse_wh": 86.30633525824612
+  },
+  "final_test_selected_model_results": {
+    "mae_wh": 27.198647696582725,
+    "rmse_wh": 59.559715146583734
+  },
+  "percentage_improvement_over_baseline": {
+    "mae_percent": 41.700974926063296,
+    "rmse_percent": 30.99033232222299,
+    "formula": "(baseline error - model error) / baseline error * 100; positive means improvement"
+  },
+  "anomaly_methodology": {
+    "method": "95th percentile of positive validation residuals",
+    "threshold_source": "validation period only; final test residuals are excluded",
+    "calibration_period_start": "2016-04-18T17:40:00",
+    "calibration_period_end": "2016-05-08T05:40:00",
+    "calibration_rows": 2809,
+    "positive_calibration_residuals": 956,
+    "threshold_wh": 203.79572422189156,
+    "comparison": "final-test positive residual strictly greater than frozen threshold",
+    "final_test_anomaly_count": 48,
+    "final_test_anomaly_rate": 0.01708185053380783,
+    "interpretation": "Unexpectedly high appliance consumption requiring investigation; not proof of energy waste."
+  },
+  "model_investigation": {
+    "tuning_scope": {
+      "model_feature_combinations_evaluated": 20,
+      "random_forest_variants": [
+        "original",
+        "regularized"
+      ],
+      "gradient_boosting_variants": [
+        "original",
+        "regularized"
+      ],
+      "test_set_used_for_tuning": false
+    },
+    "feature_set_validation_comparison": {
+      "legacy": {
+        "best_model": "Gradient Boosting",
+        "best_variant": "regularized",
+        "validation_mae_wh": 44.656817195976345,
+        "validation_rmse_wh": 81.94993997375839,
+        "feature_columns": [
+          "hour",
+          "minute",
+          "day_of_week",
+          "month",
+          "is_weekend",
+          "previous_outdoor_temperature_c",
+          "previous_outdoor_humidity_pct",
+          "previous_hour_consumption",
+          "previous_day_same_hour",
+          "rolling_24h_average",
+          "rolling_7day_average"
+        ]
+      },
+      "cyclic_calendar": {
+        "best_model": "Gradient Boosting",
+        "best_variant": "original",
+        "validation_mae_wh": 44.07134660843017,
+        "validation_rmse_wh": 81.02920649566602,
+        "feature_columns": [
+          "hour_sin",
+          "hour_cos",
+          "day_of_week_sin",
+          "day_of_week_cos",
+          "month",
+          "is_weekend",
+          "previous_outdoor_temperature_c",
+          "previous_outdoor_humidity_pct",
+          "previous_hour_consumption",
+          "previous_day_same_hour",
+          "rolling_24h_average",
+          "rolling_7day_average"
+        ]
+      },
+      "recent_history": {
+        "best_model": "Random Forest",
+        "best_variant": "regularized",
+        "validation_mae_wh": 27.65441177472043,
+        "validation_rmse_wh": 58.98251114137355,
+        "feature_columns": [
+          "hour",
+          "minute",
+          "day_of_week",
+          "month",
+          "is_weekend",
+          "previous_outdoor_temperature_c",
+          "previous_outdoor_humidity_pct",
+          "previous_hour_consumption",
+          "previous_day_same_hour",
+          "rolling_24h_average",
+          "rolling_7day_average",
+          "previous_interval_consumption",
+          "rolling_1h_average",
+          "rolling_6h_average"
+        ]
+      },
+      "cyclic_plus_recent_history": {
+        "best_model": "Random Forest",
+        "best_variant": "regularized",
+        "validation_mae_wh": 27.412200069909407,
+        "validation_rmse_wh": 58.50609303449747,
+        "feature_columns": [
+          "hour_sin",
+          "hour_cos",
+          "day_of_week_sin",
+          "day_of_week_cos",
+          "month",
+          "is_weekend",
+          "previous_outdoor_temperature_c",
+          "previous_outdoor_humidity_pct",
+          "previous_hour_consumption",
+          "previous_day_same_hour",
+          "rolling_24h_average",
+          "rolling_7day_average",
+          "previous_interval_consumption",
+          "rolling_1h_average",
+          "rolling_6h_average"
+        ]
+      }
+    },
+    "tree_model_findings": {
+      "random_forest": {
+        "original": {
+          "train_rmse_wh": 32.465323851078004,
+          "validation_rmse_wh": 64.16097550104118,
+          "validation_minus_train_rmse_wh": 31.695651649963175
+        },
+        "regularized": {
+          "train_rmse_wh": 53.487889697288026,
+          "validation_rmse_wh": 58.50609303449747,
+          "validation_minus_train_rmse_wh": 5.018203337209442
+        },
+        "finding": "The original forest had a much larger train-validation RMSE gap. Modest depth/leaf regularization reduced that gap and improved validation RMSE; this is consistent with reduced overfitting."
+      },
+      "gradient_boosting": {
+        "original": {
+          "train_rmse_wh": 61.5536466733756,
+          "validation_rmse_wh": 62.00080146381306,
+          "validation_minus_train_rmse_wh": 0.44715479043745887
+        },
+        "regularized": {
+          "train_rmse_wh": 65.0217404111604,
+          "validation_rmse_wh": 59.625764343943516,
+          "validation_minus_train_rmse_wh": -5.395976067216878
+        },
+        "finding": "The shallow regularized variant improved validation RMSE. This does not establish a causal reason, but it supports keeping the less complex validation winner."
+      }
+    },
+    "retained_new_features": [
+      "hour_sin",
+      "hour_cos",
+      "day_of_week_sin",
+      "day_of_week_cos",
+      "previous_interval_consumption",
+      "rolling_1h_average",
+      "rolling_6h_average"
+    ],
+    "overfitting_check": {
+      "Linear Regression": {
+        "train_rmse_wh": 67.27324030397405,
+        "validation_rmse_wh": 60.93368256980704,
+        "validation_minus_train_rmse_wh": -6.339557734167009,
+        "note": "A positive train-to-validation gap is consistent with overfitting and/or temporal shift; it does not identify a cause by itself."
+      },
+      "Random Forest": {
+        "train_rmse_wh": 53.487889697288026,
+        "validation_rmse_wh": 58.50609303449747,
+        "validation_minus_train_rmse_wh": 5.018203337209442,
+        "note": "A positive train-to-validation gap is consistent with overfitting and/or temporal shift; it does not identify a cause by itself."
+      },
+      "Gradient Boosting": {
+        "train_rmse_wh": 65.0217404111604,
+        "validation_rmse_wh": 59.625764343943516,
+        "validation_minus_train_rmse_wh": -5.395976067216878,
+        "note": "A positive train-to-validation gap is consistent with overfitting and/or temporal shift; it does not identify a cause by itself."
+      }
+    },
+    "feature_scaling": {
+      "linear_regression": "Median imputation followed by StandardScaler",
+      "tree_models": "Not scaled because tree splits are scale-invariant"
+    },
+    "lag_feature_quality": {
+      "previous_interval_consumption": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.7570436256201446,
+        "uses_current_target": false
+      },
+      "previous_hour_consumption": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.3378029769383962,
+        "uses_current_target": false
+      },
+      "previous_day_same_hour": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.21357640192042276,
+        "uses_current_target": false
+      },
+      "rolling_1h_average": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.5959741938928612,
+        "uses_current_target": false
+      },
+      "rolling_6h_average": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.38775839625819475,
+        "uses_current_target": false
+      },
+      "rolling_24h_average": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": 0.15352522186454456,
+        "uses_current_target": false
+      },
+      "rolling_7day_average": {
+        "training_null_rows": 0,
+        "training_pearson_correlation_with_target": -0.0037169740296053313,
+        "uses_current_target": false
+      }
+    },
+    "leakage_controls": [
+      "All lag and rolling features use strictly earlier timestamps.",
+      "Rolling windows are calculated after shifting consumption by one interval.",
+      "Current weather is excluded; weather is lagged by one interval.",
+      "Model, feature set, and hyperparameters are selected on validation only.",
+      "Anomaly threshold is calibrated on validation residuals only.",
+      "Unselected models are not evaluated on the final test period."
+    ],
+    "temporal_distribution_summary": {
+      "train": {
+        "consumption_mean_wh": 97.57323771742448,
+        "consumption_median_wh": 60.0,
+        "consumption_std_wh": 104.59880398774057,
+        "consumption_p95_wh": 330.0,
+        "outdoor_temperature_mean_c": 5.9557496694130805,
+        "outdoor_humidity_mean_pct": 82.26899603295698
+      },
+      "validation": {
+        "consumption_mean_wh": 93.12922748309006,
+        "consumption_median_wh": 60.0,
+        "consumption_std_wh": 90.3668411897755,
+        "consumption_p95_wh": 285.9999999999991,
+        "outdoor_temperature_mean_c": 8.993431826272696,
+        "outdoor_humidity_mean_pct": 70.58365966536134
+      },
+      "test": {
+        "consumption_mean_wh": 97.01423487544484,
+        "consumption_median_wh": 60.0,
+        "consumption_std_wh": 91.44161935911005,
+        "consumption_p95_wh": 290.0,
+        "outdoor_temperature_mean_c": 14.309395017793594,
+        "outdoor_humidity_mean_pct": 74.88291814946619
+      },
+      "interpretation": "Differences across chronological periods may reduce generalization, especially for trees that cannot extrapolate beyond learned split regions."
+    }
   },
   "failure_analysis": {
     "rows_saved": 10,
-    "ranking": "largest absolute errors in the held-out test period",
-    "path": "results/failure_analysis.csv"
+    "ranking": "largest absolute errors in the final unseen test period",
+    "path": "results/failure_analysis.csv",
+    "causes_inferred": false
   }
 }

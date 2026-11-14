@@ -63,8 +63,8 @@ interpolation that looks ahead could leak future information into a prediction.
 
 This dataset is useful for a transparent prototype because it is public,
 regularly sampled, small enough to reproduce locally, and contains weather.
-However, it is one residence rather than a school. Its schedule, equipment,
-occupancy, and climate may differ from another building. The results test the
-WATTWISE method on this building; they do not establish performance for every
-school or commercial building.
+It is one residence and is not school-specific data. Its schedule, equipment,
+occupancy, and climate may differ from another building. WATTWISE is therefore
+framed as AI energy intelligence for buildings, and these results do not
+establish performance for every residence, school, or commercial building.
 

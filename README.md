@@ -4,34 +4,39 @@
 
 **Project:** Veritas AI International High School Hackathon 2026
 
-WATTWISE learns a building's normal electricity-consumption patterns, predicts
-expected usage, and highlights unusually high observations for a facilities
-manager to investigate. A flagged observation is **not** proof of energy waste,
-a broken appliance, or any particular cause.
+WATTWISE is **AI energy intelligence for buildings**. It learns normal
+electricity-consumption patterns, predicts expected usage, and highlights
+unusually high observations for a building occupant or facilities manager to
+investigate. A flagged observation is not proof of energy waste, a broken
+appliance, or any particular cause.
 
-This repository currently contains the completed ML foundation only. The
-website is intentionally deferred.
+This repository contains the validated ML foundation and a static Next.js
+hackathon website that reads the generated result files directly.
 
 ## Research question and current result
 
 > Can machine learning learn normal building energy-consumption patterns well
 > enough to detect unexpectedly high electricity usage?
 
-On this dataset's held-out final 20% of time, Linear Regression had the lowest
-RMSE and MAE. Its RMSE was about 5.1% lower than the historical-average
-baseline. This is promising evidence for the method on one building, but it is
-not proof that the same accuracy will transfer to a school or another season.
+Model and feature selection use a chronological validation period. The final
+test period remains unseen until those choices and the anomaly threshold are
+frozen. Random Forest had the lowest validation RMSE and was selected.
 
-| Method | Test MAE (Wh) | Test RMSE (Wh) |
+| Method | Validation MAE (Wh) | Validation RMSE (Wh) |
 |---|---:|---:|
-| Baseline | 46.15 | 84.16 |
-| **Linear Regression** | **45.36** | **79.86** |
-| Random Forest | 65.78 | 97.53 |
-| Gradient Boosting | 59.48 | 86.74 |
+| Linear Regression | 27.08 | 60.93 |
+| **Random Forest** | 27.41 | **58.51** |
+| Gradient Boosting | **25.89** | 59.63 |
 
-All metrics use the same 3,746 unseen test observations from 1 May through 27
-May 2016. Lower is better. Full-precision values are in
-`results/metrics.json`.
+The frozen final comparison on 2,810 unseen observations was:
+
+| Method | Final test MAE (Wh) | Final test RMSE (Wh) |
+|---|---:|---:|
+| Baseline | 46.65 | 86.31 |
+| **Selected Random Forest** | **27.20** | **59.56** |
+
+That is a 41.70% MAE improvement and 30.99% RMSE improvement over the baseline.
+Full-precision results and diagnostics are in `results/metrics.json`.
 
 ## Dataset
 
@@ -42,122 +47,134 @@ listed by UCI under CC BY 4.0.
 - 19,735 rows from one low-energy residential building
 - 11 January through 27 May 2016
 - one row every 10 minutes, with no missing intervals
-- target: appliance energy use in Wh per 10-minute interval
-- model weather inputs: outdoor temperature and relative humidity
+- target: appliance energy consumption in Wh per 10-minute interval
+- model weather inputs: lagged outdoor temperature and relative humidity
 
-See [`data/DATASET.md`](data/DATASET.md) for provenance, exact definitions,
-quality findings, and limitations. The building is a residence, not a school;
-that is the largest external-validity limitation of this prototype.
+This is building data from one residence, not school-specific data. See
+`data/DATASET.md` for provenance, definitions, quality findings, and limits.
 
-## How the ML pipeline works
+## Evaluation methodology
 
-1. Validate and clean the timestamp, energy, temperature, and humidity fields.
-2. Create calendar features and strictly past-looking consumption features.
-3. Drop the first seven days, which do not yet have a full 7-day history.
-4. Train on the earliest 80% and test on the latest 20%; never shuffle rows.
-5. Compare a historical-average baseline with three requested regressors.
-6. Select the lowest-test-RMSE model and calculate `actual - predicted`.
-7. Flag positive residuals above a threshold calibrated only from training data.
+1. Validate and clean timestamps, energy, temperature, and humidity.
+2. Create calendar and strictly past-looking consumption features.
+3. Drop the first seven days, which lack a full 7-day history.
+4. Split chronologically into 70% train, 15% validation, and 15% test.
+5. Compare a bounded set of model/feature candidates on validation only.
+6. Freeze the lowest-validation-RMSE configuration and anomaly threshold.
+7. Refit the winner on train + validation and evaluate once on final test.
+8. Calculate `actual - predicted` and flag large positive residuals.
 
-### Input features
+No rows are shuffled. Unselected models do not receive final-test scores.
 
-| Feature | Plain-language meaning | Available before prediction? |
+### Selected input features
+
+| Feature | Meaning | Leakage control |
 |---|---|---|
-| `hour`, `minute` | Time of day | Yes, from timestamp |
-| `day_of_week` | Monday = 0 through Sunday = 6 | Yes, from timestamp |
-| `month` | Calendar month | Yes, from timestamp |
-| `is_weekend` | 1 on Saturday/Sunday, otherwise 0 | Yes, from timestamp |
-| `previous_outdoor_temperature_c` | Outdoor temperature 10 minutes earlier | Yes, from an earlier sensor reading |
-| `previous_outdoor_humidity_pct` | Outdoor humidity 10 minutes earlier | Yes, from an earlier sensor reading |
-| `previous_hour_consumption` | Reading exactly one hour earlier | Yes, six rows earlier |
-| `previous_day_same_hour` | Reading exactly one day earlier | Yes, 144 rows earlier |
-| `rolling_24h_average` | Average of the previous 24 hours | Yes; current row excluded |
-| `rolling_7day_average` | Average of the previous 7 days | Yes; current row excluded |
+| `hour_sin`, `hour_cos` | Cyclic time of day | Timestamp only |
+| `day_of_week_sin`, `day_of_week_cos` | Cyclic weekday | Timestamp only |
+| `month`, `is_weekend` | Calendar context | Timestamp only |
+| `previous_outdoor_temperature_c` | Temperature 10 minutes earlier | Earlier sensor reading |
+| `previous_outdoor_humidity_pct` | Humidity 10 minutes earlier | Earlier sensor reading |
+| `previous_interval_consumption` | Consumption 10 minutes earlier | One row earlier |
+| `previous_hour_consumption` | Consumption one hour earlier | Six rows earlier |
+| `previous_day_same_hour` | Consumption one day earlier | 144 rows earlier |
+| `rolling_1h_average` | Previous-hour mean | Shifted; current row excluded |
+| `rolling_6h_average` | Previous-6-hour mean | Shifted; current row excluded |
+| `rolling_24h_average` | Previous-day mean | Shifted; current row excluded |
+| `rolling_7day_average` | Previous-week mean | Shifted; current row excluded |
 
-The current observation's consumption is the answer the model is trying to
-predict, so it is never included in its own features.
+The current observation's consumption is the target and never enters its own
+features.
+
+## Model investigation
+
+The earlier tree models generalized poorly largely because they lacked strong
+short-term history and the original Random Forest overfit its training period.
+Validation evidence—not final-test tuning—supported two changes:
+
+- Adding previous-interval, 1-hour, and 6-hour history reduced the best
+  validation RMSE from about 81–82 Wh to about 59 Wh.
+- The original forest's train/validation RMSE was 32.47/64.16 Wh. Modest depth
+  and leaf regularization changed that to 53.49/58.51 Wh, greatly reducing the
+  gap and improving validation performance.
+- Cyclic calendar encoding improved the best recent-history configuration from
+  58.98 to 58.51 Wh validation RMSE.
+- Linear Regression uses median imputation and standardization. Tree models are
+  not scaled because tree splits are scale-invariant.
+
+These observations are consistent with overfitting and temporal distribution
+shift; they do not prove a single cause. All 20 predefined validation candidates
+are inspectable in `results/validation_candidates.csv`.
 
 ## Concepts to explain to judges
 
 ### What does the model predict?
 
-It predicts the expected number of watt-hours used by appliances during one
-10-minute interval. It does not predict a cause, cost, carbon emissions, or
-whether the usage was necessary.
+It predicts expected appliance energy consumption in Wh for one 10-minute
+interval. It does not predict a cause, cost, emissions, or whether usage was
+necessary.
 
 ### What is a baseline?
 
-A baseline is a simple reference method that a machine-learning model should
-beat to be useful. WATTWISE's baseline averages past training readings for the
-same weekday and 10-minute time slot. If that exact slot is missing, it falls
-back to the same time of day and then the overall training average.
+A baseline is a simple reference method. WATTWISE averages pre-test readings
+for the same weekday and 10-minute time slot, with time-of-day and overall
+fallbacks. The ML model must be compared against it on the identical test period.
 
-### Why use a chronological split?
+### Why train, validation, and test?
 
-In real operation, a model learns from the past and predicts the future. Random
-shuffling would let nearly adjacent future-like observations influence training
-and would make the test unrealistically easy. WATTWISE trains on earlier rows
-and evaluates once on later, unseen rows.
+Training fits the models. Validation chooses features, modest hyperparameters,
+and the model family. The later test period estimates performance only after
+those choices are frozen. This prevents choosing a model because it happened to
+look best on the final answers.
 
 ### What do MAE and RMSE mean?
 
-- **MAE (Mean Absolute Error)** is the average size of the prediction error,
-  ignoring whether the prediction was high or low. The selected model's MAE of
-  45.36 Wh means its predictions differed from actual usage by about 45 Wh per
-  10-minute observation on average.
-- **RMSE (Root Mean Squared Error)** also measures error in Wh, but it penalizes
-  large misses more strongly. That makes RMSE useful when rare large errors
-  matter. The selected model's test RMSE is 79.86 Wh.
+- **MAE** is the average absolute prediction error. The selected model's final
+  MAE is 27.20 Wh per 10-minute observation.
+- **RMSE** penalizes large misses more strongly. The selected model's final RMSE
+  is 59.56 Wh.
+
+Lower is better for both.
 
 ### What is a residual?
-
-WATTWISE uses:
 
 ```text
 residual = actual consumption - predicted consumption
 ```
 
-A positive residual means the building used more energy than predicted. A
-negative residual means it used less.
+A positive residual means consumption was above prediction. A negative residual
+means it was below prediction.
 
 ### How does anomaly detection work?
 
-The anomaly threshold is not an invented fixed number. After selecting the
-model, WATTWISE refits a temporary copy on the earlier part of training and
-examines positive residuals on the final 20% of training. The threshold is the
-95th percentile of those positive calibration residuals: **411.95 Wh**.
+The threshold is the 95th percentile of the selected model's positive
+**validation** residuals: 203.80 Wh. It is frozen before final testing, so test
+residuals do not choose the threshold. It flags 48 of 2,810 final-test
+observations (1.71%). Each anomaly also receives a percentile relative to the
+positive validation residual distribution.
 
-That threshold is then frozen and applied to the unseen test period. It flags
-24 of 3,746 test observations (0.64%). This is not necessarily 5% of the test
-set because the threshold comes from past training data rather than looking at
-the test answers. Each anomaly also receives a percentile relative to the
-positive calibration residuals.
+An anomaly is unexpectedly high consumption requiring investigation, not proof
+of energy waste.
 
 ### What can the model not know?
 
-The data does not tell the model who was in the building, which appliance was
-on, whether an event occurred, whether a holiday changed the schedule, whether
-maintenance was happening, or whether a sensor was faulty. It therefore cannot
-explain why an observation is unusual or decide that consumption was avoidable.
-It can only identify a period that differs from patterns it learned.
+The data does not reveal occupancy, appliance state, events, holidays,
+maintenance, or sensor faults. The model cannot explain why an observation is
+unusual or decide whether it was avoidable.
 
 ## Failure analysis
 
 `results/failure_analysis.csv` contains the ten largest absolute errors in the
-unseen test period. The five largest were:
+final unseen test period. The three largest were:
 
 | Timestamp | Actual (Wh) | Predicted (Wh) | Absolute error (Wh) |
 |---|---:|---:|---:|
-| 2016-05-26 09:50 | 820 | 92.13 | 727.87 |
-| 2016-05-26 16:40 | 850 | 137.42 | 712.58 |
-| 2016-05-21 09:40 | 790 | 147.10 | 642.90 |
-| 2016-05-06 07:30 | 670 | 82.53 | 587.47 |
-| 2016-05-13 08:00 | 660 | 81.24 | 578.76 |
+| 2016-05-27 09:40 | 580 | 66.79 | 513.21 |
+| 2016-05-16 17:40 | 630 | 130.78 | 499.22 |
+| 2016-05-13 11:10 | 600 | 115.78 | 484.22 |
 
-The model could see calendar time, outdoor weather, and earlier consumption for
-these observations. It could not see occupancy, appliance state, events,
-maintenance, holidays, or sensor faults. The file deliberately does not invent
-causes for the errors.
+The file records what the model could and could not observe without inventing
+causes.
 
 ## Run the project
 
@@ -171,15 +188,10 @@ python scripts/run_pipeline.py
 python -m pytest -q
 ```
 
-The pipeline rebuilds cleaned data, features, metrics, predictions, anomalies,
-failure analysis, and the saved model from the raw CSV.
-
 ## Reuse the trained model
 
-Both public functions need chronological history. Seven days are required for
-the 7-day rolling feature. The current row may contain actual consumption for
-analysis, but feature engineering shifts consumption so the current value never
-enters its own prediction.
+The functions need chronological history. Seven days are required for the
+7-day rolling feature.
 
 ```python
 import pandas as pd
@@ -195,26 +207,26 @@ periods_to_investigate = analyse_consumption(history)
 ```
 
 Set `anomalies_only=False` in `analyse_consumption(...)` to receive every
-analyzed observation with its residual and anomaly flag.
+observation with its residual and flag.
 
 ## Repository structure
 
 ```text
-data/       raw source, cleaned data, feature data, quality report, dataset card
-ml/         cleaning, feature, model, pipeline, and inference code
+data/       source, cleaned data, features, quality report, and dataset card
+ml/         cleaning, feature, model, evaluation, and inference code
 model/      selected trained model bundle and readable metadata
-results/    metrics, predictions, anomalies, and failure analysis
-notebook/   reserved for explanation; production logic stays in ml/
+results/    metrics, validation candidates, predictions, anomalies, and failures
+notebook/   reserved for explanation; pipeline logic remains in ml/
 scripts/    command-line pipeline entry point
-tests/      leakage, feature, split, and scoring tests
-website/    reserved; frontend intentionally deferred
+tests/      leakage, feature, split, calibration, and scoring tests
+website/    static Next.js presentation site powered by generated ML results
 ```
 
 ## Reproducibility notes
 
 - Random seed: 42 for Random Forest and Gradient Boosting.
-- Split: earliest 80% training, latest 20% testing after lag availability.
-- Selection: lowest test RMSE, with MAE only as an exact-tie breaker.
+- Split: earliest 70% train, next 15% validation, final 15% test.
+- Selection: lowest validation RMSE; validation MAE breaks an exact tie.
+- Tuning: 20 predefined combinations; no test-guided tuning.
+- Threshold: 95th percentile of positive validation residuals, frozen pre-test.
 - Model artifact: `model/wattwise_model.joblib`.
-- Required outputs: `results/metrics.json`, `results/predictions.csv`, and
-  `results/anomalies.csv`.

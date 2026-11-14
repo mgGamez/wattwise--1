@@ -4,4 +4,9 @@ __pycache__/
 .venv/
 venv/
 .DS_Store
+website/node_modules/
+website/.next/
+website/out/
+website/.vercel/
+website/*.tsbuildinfo
 

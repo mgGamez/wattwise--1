@@ -1,10 +1,13 @@
 {
-  "model_name": "linear_regression",
-  "model_label": "Linear Regression",
+  "model_name": "random_forest",
+  "model_label": "Random Forest",
+  "model_variant": "regularized",
+  "feature_set": "cyclic_plus_recent_history",
   "feature_columns": [
-    "hour",
-    "minute",
-    "day_of_week",
+    "hour_sin",
+    "hour_cos",
+    "day_of_week_sin",
+    "day_of_week_cos",
     "month",
     "is_weekend",
     "previous_outdoor_temperature_c",
@@ -12,12 +15,17 @@
     "previous_hour_consumption",
     "previous_day_same_hour",
     "rolling_24h_average",
-    "rolling_7day_average"
+    "rolling_7day_average",
+    "previous_interval_consumption",
+    "rolling_1h_average",
+    "rolling_6h_average"
   ],
-  "anomaly_threshold_wh": 411.94520984775613,
+  "anomaly_threshold_wh": 203.79572422189156,
   "training_period_start": "2016-01-18T17:00:00",
-  "training_period_end": "2016-05-01T17:40:00",
+  "training_period_end": "2016-05-08T05:40:00",
+  "validation_period_start": "2016-04-18T17:40:00",
+  "validation_period_end": "2016-05-08T05:40:00",
   "measurement_interval_minutes": 10,
   "target": "consumption_wh",
-  "positive_calibration_residual_count": 753
+  "positive_calibration_residual_count": 956
 }

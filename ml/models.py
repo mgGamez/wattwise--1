@@ -9,6 +9,7 @@ from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 class HistoricalAverageBaseline(RegressorMixin, BaseEstimator):
@@ -40,45 +41,102 @@ class HistoricalAverageBaseline(RegressorMixin, BaseEstimator):
         return np.asarray(predictions)
 
 
+def build_model_candidates(
+    random_state: int = 42,
+) -> dict[str, dict[str, BaseEstimator]]:
+    """Return a deliberately small validation-only tuning grid.
+
+    Linear Regression is scaled because its inputs have very different units.
+    Scaling is unnecessary for decision trees, whose split decisions are
+    unchanged by monotonic rescaling.
+    """
+    return {
+        "linear_regression": {
+            "scaled": Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="median")),
+                    ("scaler", StandardScaler()),
+                    ("model", LinearRegression()),
+                ]
+            )
+        },
+        "random_forest": {
+            "original": Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="median")),
+                    (
+                        "model",
+                        RandomForestRegressor(
+                            n_estimators=250,
+                            min_samples_leaf=2,
+                            random_state=random_state,
+                            n_jobs=-1,
+                        ),
+                    ),
+                ]
+            ),
+            "regularized": Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="median")),
+                    (
+                        "model",
+                        RandomForestRegressor(
+                            n_estimators=300,
+                            max_depth=10,
+                            min_samples_leaf=8,
+                            max_features=0.8,
+                            random_state=random_state,
+                            n_jobs=-1,
+                        ),
+                    ),
+                ]
+            ),
+        },
+        "gradient_boosting": {
+            "original": Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="median")),
+                    (
+                        "model",
+                        GradientBoostingRegressor(
+                            n_estimators=250,
+                            learning_rate=0.04,
+                            max_depth=3,
+                            min_samples_leaf=3,
+                            random_state=random_state,
+                            loss="squared_error",
+                        ),
+                    ),
+                ]
+            ),
+            "regularized": Pipeline(
+                [
+                    ("imputer", SimpleImputer(strategy="median")),
+                    (
+                        "model",
+                        GradientBoostingRegressor(
+                            n_estimators=180,
+                            learning_rate=0.035,
+                            max_depth=2,
+                            min_samples_leaf=10,
+                            subsample=0.8,
+                            random_state=random_state,
+                            loss="squared_error",
+                        ),
+                    ),
+                ]
+            ),
+        },
+    }
+
+
 def build_models(random_state: int = 42) -> dict[str, BaseEstimator]:
-    """Return the baseline and the three requested ML models."""
+    """Return one representative estimator per model family."""
+    candidates = build_model_candidates(random_state)
     return {
         "baseline": HistoricalAverageBaseline(),
-        "linear_regression": Pipeline(
-            [
-                ("imputer", SimpleImputer(strategy="median")),
-                ("model", LinearRegression()),
-            ]
-        ),
-        "random_forest": Pipeline(
-            [
-                ("imputer", SimpleImputer(strategy="median")),
-                (
-                    "model",
-                    RandomForestRegressor(
-                        n_estimators=250,
-                        min_samples_leaf=2,
-                        random_state=random_state,
-                        n_jobs=-1,
-                    ),
-                ),
-            ]
-        ),
-        "gradient_boosting": Pipeline(
-            [
-                ("imputer", SimpleImputer(strategy="median")),
-                (
-                    "model",
-                    GradientBoostingRegressor(
-                        n_estimators=250,
-                        learning_rate=0.04,
-                        max_depth=3,
-                        min_samples_leaf=3,
-                        random_state=random_state,
-                        loss="squared_error",
-                    ),
-                ),
-            ]
-        ),
+        "linear_regression": candidates["linear_regression"]["scaled"],
+        "random_forest": candidates["random_forest"]["regularized"],
+        "gradient_boosting": candidates["gradient_boosting"]["regularized"],
     }
 

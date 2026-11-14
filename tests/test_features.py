@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from ml.features import FEATURE_COLUMNS, make_features, modeling_rows
-from ml.pipeline import _chronological_split
+from ml.pipeline import _chronological_split, _train_validation_test_split
 
 
 def synthetic_data(periods: int = 1_100) -> pd.DataFrame:
@@ -25,6 +25,9 @@ def test_lags_and_rolling_windows_use_only_earlier_values() -> None:
     featured = make_features(data)
     row_index = 1_050
 
+    assert featured.loc[row_index, "previous_interval_consumption"] == data.loc[
+        row_index - 1, "consumption_wh"
+    ]
     assert featured.loc[row_index, "previous_hour_consumption"] == data.loc[
         row_index - 6, "consumption_wh"
     ]
@@ -33,6 +36,12 @@ def test_lags_and_rolling_windows_use_only_earlier_values() -> None:
     ]
     assert featured.loc[row_index, "rolling_24h_average"] == data.loc[
         row_index - 144 : row_index - 1, "consumption_wh"
+    ].mean()
+    assert featured.loc[row_index, "rolling_1h_average"] == data.loc[
+        row_index - 6 : row_index - 1, "consumption_wh"
+    ].mean()
+    assert featured.loc[row_index, "rolling_6h_average"] == data.loc[
+        row_index - 36 : row_index - 1, "consumption_wh"
     ].mean()
     assert featured.loc[row_index, "rolling_7day_average"] == data.loc[
         row_index - 1_008 : row_index - 1, "consumption_wh"
@@ -81,4 +90,21 @@ def test_chronological_split_never_shuffles() -> None:
     assert train["timestamp"].max() < test["timestamp"].min()
     assert train["timestamp"].is_monotonic_increasing
     assert test["timestamp"].is_monotonic_increasing
+
+
+def test_train_validation_test_split_is_ordered_and_non_overlapping() -> None:
+    frame = modeling_rows(make_features(synthetic_data()))
+    train, validation, test = _train_validation_test_split(frame)
+    assert train["timestamp"].max() < validation["timestamp"].min()
+    assert validation["timestamp"].max() < test["timestamp"].min()
+    assert len(train) + len(validation) + len(test) == len(frame)
+    assert len(train) == int(len(frame) * 0.70)
+    assert len(validation) == int(len(frame) * 0.85) - len(train)
+
+
+def test_cyclic_features_have_expected_periodic_boundaries() -> None:
+    featured = make_features(synthetic_data())
+    midnight = featured.loc[featured["timestamp"].dt.hour == 0].iloc[0]
+    assert np.isclose(midnight["hour_sin"], 0.0)
+    assert np.isclose(midnight["hour_cos"], 1.0)
 

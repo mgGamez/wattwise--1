@@ -1,0 +1,1227 @@
+{
+  "source": {
+    "metrics": "results/metrics.json",
+    "predictions": "results/predictions.csv",
+    "anomalies": "results/anomalies.csv",
+    "failures": "results/failure_analysis.csv"
+  },
+  "dataset": {
+    "name": "UCI Appliances Energy Prediction",
+    "framing": "AI energy intelligence for buildings",
+    "intended_user": "A building occupant or facilities manager",
+    "source": "UCI Machine Learning Repository",
+    "source_url": "https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction",
+    "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "building_type": "One low-energy residential building; not school-specific data",
+    "raw_rows": 19735,
+    "cleaned_rows": 19735,
+    "modeling_rows": 18727,
+    "measurement_interval_minutes": 10,
+    "target": "Appliances energy consumption",
+    "energy_unit": "Wh per 10-minute interval",
+    "date_range": {
+      "start": "2016-01-11T17:00:00",
+      "end": "2016-05-27T18:00:00"
+    }
+  },
+  "periods": {
+    "train": {
+      "rows": 13108,
+      "start": "2016-01-18T17:00:00",
+      "end": "2016-04-18T17:30:00"
+    },
+    "validation": {
+      "rows": 2809,
+      "start": "2016-04-18T17:40:00",
+      "end": "2016-05-08T05:40:00"
+    },
+    "test": {
+      "rows": 2810,
+      "start": "2016-05-08T05:50:00",
+      "end": "2016-05-27T18:00:00"
+    }
+  },
+  "validationModels": [
+    {
+      "name": "Linear Regression",
+      "mae": 27.076883159985876,
+      "rmse": 60.93368256980704,
+      "selected": false
+    },
+    {
+      "name": "Random Forest",
+      "mae": 27.412200069909407,
+      "rmse": 58.50609303449747,
+      "selected": true
+    },
+    {
+      "name": "Gradient Boosting",
+      "mae": 25.888806629576813,
+      "rmse": 59.625764343943516,
+      "selected": false
+    }
+  ],
+  "selectedModel": {
+    "name": "Random Forest",
+    "selection_rule": "Lowest validation RMSE; validation MAE breaks an exact RMSE tie",
+    "variant": "regularized",
+    "feature_set": "cyclic_plus_recent_history",
+    "feature_columns": [
+      "hour_sin",
+      "hour_cos",
+      "day_of_week_sin",
+      "day_of_week_cos",
+      "month",
+      "is_weekend",
+      "previous_outdoor_temperature_c",
+      "previous_outdoor_humidity_pct",
+      "previous_hour_consumption",
+      "previous_day_same_hour",
+      "rolling_24h_average",
+      "rolling_7day_average",
+      "previous_interval_consumption",
+      "rolling_1h_average",
+      "rolling_6h_average"
+    ],
+    "hyperparameters": {
+      "n_estimators": 300,
+      "max_depth": 10,
+      "min_samples_leaf": 8,
+      "max_features": 0.8
+    },
+    "refit_before_test": "Refitted on combined train + validation data after selection"
+  },
+  "finalBaseline": {
+    "mae_wh": 46.6536921708185,
+    "rmse_wh": 86.30633525824612
+  },
+  "finalModel": {
+    "mae_wh": 27.198647696582725,
+    "rmse_wh": 59.559715146583734
+  },
+  "improvement": {
+    "mae_percent": 41.700974926063296,
+    "rmse_percent": 30.99033232222299,
+    "formula": "(baseline error - model error) / baseline error * 100; positive means improvement"
+  },
+  "anomalyMethodology": {
+    "method": "95th percentile of positive validation residuals",
+    "threshold_source": "validation period only; final test residuals are excluded",
+    "calibration_period_start": "2016-04-18T17:40:00",
+    "calibration_period_end": "2016-05-08T05:40:00",
+    "calibration_rows": 2809,
+    "positive_calibration_residuals": 956,
+    "threshold_wh": 203.79572422189156,
+    "comparison": "final-test positive residual strictly greater than frozen threshold",
+    "final_test_anomaly_count": 48,
+    "final_test_anomaly_rate": 0.01708185053380783,
+    "interpretation": "Unexpectedly high appliance consumption requiring investigation; not proof of energy waste."
+  },
+  "strongestAnomaly": {
+    "timestamp": "2016-05-27 09:40:00",
+    "expected": 66.78615956368664,
+    "actual": 580,
+    "residual": 513.2138404363134,
+    "percentAbove": 768.4434077197052,
+    "percentile": 99.581589958159
+  },
+  "anomalies": [
+    {
+      "timestamp": "2016-05-27 09:40:00",
+      "expected": 66.78615956368664,
+      "actual": 580,
+      "residual": 513.2138404363134,
+      "percentAbove": 768.4434077197052,
+      "percentile": 99.581589958159
+    },
+    {
+      "timestamp": "2016-05-16 17:40:00",
+      "expected": 130.77531309839807,
+      "actual": 630,
+      "residual": 499.2246869016019,
+      "percentAbove": 381.74229911877546,
+      "percentile": 99.47698744769873
+    },
+    {
+      "timestamp": "2016-05-13 11:10:00",
+      "expected": 115.77713408697981,
+      "actual": 600,
+      "residual": 484.2228659130202,
+      "percentAbove": 418.23704631454984,
+      "percentile": 99.47698744769873
+    },
+    {
+      "timestamp": "2016-05-21 09:40:00",
+      "expected": 306.61767427166785,
+      "actual": 790,
+      "residual": 483.38232572833215,
+      "percentAbove": 157.64985722905462,
+      "percentile": 99.47698744769873
+    },
+    {
+      "timestamp": "2016-05-26 11:40:00",
+      "expected": 129.69119128522158,
+      "actual": 600,
+      "residual": 470.3088087147784,
+      "percentAbove": 362.6374343963409,
+      "percentile": 99.47698744769873
+    },
+    {
+      "timestamp": "2016-05-26 09:50:00",
+      "expected": 360.05669286608355,
+      "actual": 820,
+      "residual": 459.94330713391645,
+      "percentAbove": 127.74191293952254,
+      "percentile": 99.26778242677824
+    },
+    {
+      "timestamp": "2016-05-13 07:50:00",
+      "expected": 112.91223922664312,
+      "actual": 560,
+      "residual": 447.0877607733569,
+      "percentAbove": 395.96040591838755,
+      "percentile": 99.26778242677824
+    },
+    {
+      "timestamp": "2016-05-13 14:20:00",
+      "expected": 194.52290297778177,
+      "actual": 620,
+      "residual": 425.47709702221823,
+      "percentAbove": 218.7285355652007,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-26 16:30:00",
+      "expected": 300.5622110377508,
+      "actual": 710,
+      "residual": 409.4377889622492,
+      "percentAbove": 136.22397424765538,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-21 11:10:00",
+      "expected": 199.10101167454522,
+      "actual": 590,
+      "residual": 390.89898832545475,
+      "percentAbove": 196.3319950199081,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-13 17:50:00",
+      "expected": 180.65845423576528,
+      "actual": 560,
+      "residual": 379.34154576423475,
+      "percentAbove": 209.9771900346172,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-14 17:40:00",
+      "expected": 112.08865885246911,
+      "actual": 490,
+      "residual": 377.9113411475309,
+      "percentAbove": 337.1539502894197,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-26 09:40:00",
+      "expected": 91.72834292948565,
+      "actual": 460,
+      "residual": 368.2716570705144,
+      "percentAbove": 401.48076953010684,
+      "percentile": 99.05857740585773
+    },
+    {
+      "timestamp": "2016-05-21 13:10:00",
+      "expected": 195.50137122408867,
+      "actual": 550,
+      "residual": 354.49862877591136,
+      "percentAbove": 181.32795005799522,
+      "percentile": 98.84937238493724
+    },
+    {
+      "timestamp": "2016-05-23 17:30:00",
+      "expected": 236.24617199711307,
+      "actual": 590,
+      "residual": 353.75382800288696,
+      "percentAbove": 149.73949631116557,
+      "percentile": 98.84937238493724
+    },
+    {
+      "timestamp": "2016-05-12 17:40:00",
+      "expected": 126.14422398395698,
+      "actual": 470,
+      "residual": 343.855776016043,
+      "percentAbove": 272.58939423161746,
+      "percentile": 98.84937238493724
+    },
+    {
+      "timestamp": "2016-05-26 16:40:00",
+      "expected": 508.84166016562597,
+      "actual": 850,
+      "residual": 341.15833983437403,
+      "percentAbove": 67.04607081961967,
+      "percentile": 98.74476987447699
+    },
+    {
+      "timestamp": "2016-05-21 10:40:00",
+      "expected": 272.37488674023297,
+      "actual": 610,
+      "residual": 337.62511325976703,
+      "percentAbove": 123.95603621921427,
+      "percentile": 98.74476987447699
+    },
+    {
+      "timestamp": "2016-05-08 08:20:00",
+      "expected": 71.3871499582156,
+      "actual": 400,
+      "residual": 328.6128500417844,
+      "percentAbove": 460.32493275628514,
+      "percentile": 98.74476987447699
+    },
+    {
+      "timestamp": "2016-05-27 11:30:00",
+      "expected": 291.9144757691318,
+      "actual": 620,
+      "residual": 328.0855242308682,
+      "percentAbove": 112.39097457103951,
+      "percentile": 98.74476987447699
+    },
+    {
+      "timestamp": "2016-05-25 16:10:00",
+      "expected": 94.75879283006964,
+      "actual": 420,
+      "residual": 325.24120716993036,
+      "percentAbove": 343.2306358663554,
+      "percentile": 98.64016736401673
+    },
+    {
+      "timestamp": "2016-05-27 11:20:00",
+      "expected": 86.55869961375765,
+      "actual": 400,
+      "residual": 313.44130038624235,
+      "percentAbove": 362.11415118859287,
+      "percentile": 98.5355648535565
+    },
+    {
+      "timestamp": "2016-05-26 17:10:00",
+      "expected": 319.0909120947415,
+      "actual": 620,
+      "residual": 300.9090879052585,
+      "percentAbove": 94.3019924728898,
+      "percentile": 98.43096234309623
+    },
+    {
+      "timestamp": "2016-05-11 08:00:00",
+      "expected": 111.8017533598655,
+      "actual": 410,
+      "residual": 298.19824664013447,
+      "percentAbove": 266.7205456790103,
+      "percentile": 98.32635983263597
+    },
+    {
+      "timestamp": "2016-05-08 10:00:00",
+      "expected": 116.73399084557032,
+      "actual": 410,
+      "residual": 293.2660091544297,
+      "percentAbove": 251.22589147354435,
+      "percentile": 98.22175732217573
+    },
+    {
+      "timestamp": "2016-05-21 09:30:00",
+      "expected": 103.55734656619585,
+      "actual": 390,
+      "residual": 286.44265343380414,
+      "percentAbove": 276.60292864949423,
+      "percentile": 97.90794979079497
+    },
+    {
+      "timestamp": "2016-05-15 20:30:00",
+      "expected": 222.43270482428323,
+      "actual": 500,
+      "residual": 277.56729517571677,
+      "percentAbove": 124.78708802960814,
+      "percentile": 97.69874476987448
+    },
+    {
+      "timestamp": "2016-05-19 17:40:00",
+      "expected": 122.99989265105233,
+      "actual": 400,
+      "residual": 277.00010734894767,
+      "percentAbove": 225.20353585575083,
+      "percentile": 97.59414225941423
+    },
+    {
+      "timestamp": "2016-05-22 10:40:00",
+      "expected": 213.65768596318478,
+      "actual": 490,
+      "residual": 276.3423140368152,
+      "percentAbove": 129.3388125922283,
+      "percentile": 97.59414225941423
+    },
+    {
+      "timestamp": "2016-05-27 13:00:00",
+      "expected": 94.0577261182604,
+      "actual": 370,
+      "residual": 275.9422738817396,
+      "percentAbove": 293.3754464091473,
+      "percentile": 97.59414225941423
+    },
+    {
+      "timestamp": "2016-05-21 11:20:00",
+      "expected": 448.20787824732093,
+      "actual": 720,
+      "residual": 271.79212175267907,
+      "percentAbove": 60.63974663174133,
+      "percentile": 97.59414225941423
+    },
+    {
+      "timestamp": "2016-05-24 05:40:00",
+      "expected": 69.94753678794761,
+      "actual": 340,
+      "residual": 270.0524632120524,
+      "percentAbove": 386.07858920141996,
+      "percentile": 97.59414225941423
+    },
+    {
+      "timestamp": "2016-05-09 13:20:00",
+      "expected": 93.2621623348469,
+      "actual": 360,
+      "residual": 266.7378376651531,
+      "percentAbove": 286.0086352142062,
+      "percentile": 97.48953974895397
+    },
+    {
+      "timestamp": "2016-05-24 17:50:00",
+      "expected": 215.12612566454152,
+      "actual": 480,
+      "residual": 264.8738743354585,
+      "percentAbove": 123.12492195787111,
+      "percentile": 97.48953974895397
+    },
+    {
+      "timestamp": "2016-05-22 08:40:00",
+      "expected": 231.8934856631273,
+      "actual": 490,
+      "residual": 258.1065143368727,
+      "percentAbove": 111.30390903340215,
+      "percentile": 97.28033472803347
+    },
+    {
+      "timestamp": "2016-05-13 12:50:00",
+      "expected": 362.3043228340176,
+      "actual": 620,
+      "residual": 257.6956771659824,
+      "percentAbove": 71.12685687828252,
+      "percentile": 97.28033472803347
+    },
+    {
+      "timestamp": "2016-05-24 07:40:00",
+      "expected": 155.06398817450884,
+      "actual": 400,
+      "residual": 244.93601182549116,
+      "percentAbove": 157.95802410927317,
+      "percentile": 96.54811715481172
+    },
+    {
+      "timestamp": "2016-05-18 20:40:00",
+      "expected": 215.14883778505774,
+      "actual": 460,
+      "residual": 244.85116221494226,
+      "percentAbove": 113.80547751764216,
+      "percentile": 96.54811715481172
+    },
+    {
+      "timestamp": "2016-05-21 14:40:00",
+      "expected": 237.79512160423948,
+      "actual": 480,
+      "residual": 242.20487839576052,
+      "percentAbove": 101.85443534828278,
+      "percentile": 96.44351464435147
+    },
+    {
+      "timestamp": "2016-05-21 08:10:00",
+      "expected": 91.61960478595537,
+      "actual": 330,
+      "residual": 238.38039521404463,
+      "percentAbove": 260.1849197788579,
+      "percentile": 96.44351464435147
+    },
+    {
+      "timestamp": "2016-05-21 15:10:00",
+      "expected": 312.17817001478335,
+      "actual": 550,
+      "residual": 237.82182998521665,
+      "percentAbove": 76.18144150628933,
+      "percentile": 96.44351464435147
+    },
+    {
+      "timestamp": "2016-05-21 21:20:00",
+      "expected": 102.66642387119028,
+      "actual": 340,
+      "residual": 237.33357612880974,
+      "percentAbove": 231.1696143488729,
+      "percentile": 96.44351464435147
+    },
+    {
+      "timestamp": "2016-05-16 10:00:00",
+      "expected": 94.44778910925724,
+      "actual": 320,
+      "residual": 225.55221089074274,
+      "percentAbove": 238.81153070700668,
+      "percentile": 96.1297071129707
+    },
+    {
+      "timestamp": "2016-05-11 06:00:00",
+      "expected": 100.15816328338258,
+      "actual": 320,
+      "residual": 219.84183671661742,
+      "percentAbove": 219.4946767290528,
+      "percentile": 95.92050209205021
+    },
+    {
+      "timestamp": "2016-05-14 07:50:00",
+      "expected": 103.3849217129675,
+      "actual": 320,
+      "residual": 216.6150782870325,
+      "percentAbove": 209.52289240826752,
+      "percentile": 95.92050209205021
+    },
+    {
+      "timestamp": "2016-05-10 17:50:00",
+      "expected": 134.01752105692935,
+      "actual": 350,
+      "residual": 215.98247894307065,
+      "percentAbove": 161.1598821107304,
+      "percentile": 95.92050209205021
+    },
+    {
+      "timestamp": "2016-05-08 09:00:00",
+      "expected": 115.15677020547209,
+      "actual": 330,
+      "residual": 214.84322979452793,
+      "percentAbove": 186.5658696498583,
+      "percentile": 95.7112970711297
+    },
+    {
+      "timestamp": "2016-05-08 08:40:00",
+      "expected": 165.71249386209416,
+      "actual": 370,
+      "residual": 204.28750613790584,
+      "percentAbove": 123.27827635489801,
+      "percentile": 94.97907949790795
+    }
+  ],
+  "chart": {
+    "title": "2016-05-27 · 04:00–12:50",
+    "rows": [
+      {
+        "timestamp": "2016-05-27 04:00:00",
+        "actual": 60,
+        "baseline": 49.375,
+        "expected": 54.142694852110935,
+        "residual": 5.857305147889065,
+        "percentAbove": 10.818274125231685,
+        "percentile": 30.439330543933053,
+        "isAnomaly": false,
+        "label": "04:00"
+      },
+      {
+        "timestamp": "2016-05-27 04:10:00",
+        "actual": 60,
+        "baseline": 50.625,
+        "expected": 54.19900471367717,
+        "residual": 5.800995286322831,
+        "percentAbove": 10.703139876771472,
+        "percentile": 29.811715481171547,
+        "isAnomaly": false,
+        "label": "04:10"
+      },
+      {
+        "timestamp": "2016-05-27 04:20:00",
+        "actual": 60,
+        "baseline": 47.5,
+        "expected": 54.383126939158025,
+        "residual": 5.616873060841975,
+        "percentAbove": 10.328337808022587,
+        "percentile": 28.24267782426778,
+        "isAnomaly": false,
+        "label": "04:20"
+      },
+      {
+        "timestamp": "2016-05-27 04:30:00",
+        "actual": 50,
+        "baseline": 49.375,
+        "expected": 54.87768572107002,
+        "residual": -4.877685721070023,
+        "percentAbove": -8.88828611662328,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "04:30"
+      },
+      {
+        "timestamp": "2016-05-27 04:40:00",
+        "actual": 60,
+        "baseline": 48.125,
+        "expected": 52.843290561741064,
+        "residual": 7.156709438258936,
+        "percentAbove": 13.543269849740295,
+        "percentile": 38.38912133891213,
+        "isAnomaly": false,
+        "label": "04:40"
+      },
+      {
+        "timestamp": "2016-05-27 04:50:00",
+        "actual": 60,
+        "baseline": 43.125,
+        "expected": 54.66168454372427,
+        "residual": 5.33831545627573,
+        "percentAbove": 9.76610124776812,
+        "percentile": 25.418410041841007,
+        "isAnomaly": false,
+        "label": "04:50"
+      },
+      {
+        "timestamp": "2016-05-27 05:00:00",
+        "actual": 60,
+        "baseline": 46.875,
+        "expected": 54.938073479814754,
+        "residual": 5.061926520185246,
+        "percentAbove": 9.21387700652643,
+        "percentile": 24.163179916317993,
+        "isAnomaly": false,
+        "label": "05:00"
+      },
+      {
+        "timestamp": "2016-05-27 05:10:00",
+        "actual": 60,
+        "baseline": 43.125,
+        "expected": 54.91433542054834,
+        "residual": 5.0856645794516595,
+        "percentAbove": 9.261087365447128,
+        "percentile": 24.372384937238493,
+        "isAnomaly": false,
+        "label": "05:10"
+      },
+      {
+        "timestamp": "2016-05-27 05:20:00",
+        "actual": 60,
+        "baseline": 47.5,
+        "expected": 54.98048838803109,
+        "residual": 5.019511611968909,
+        "percentAbove": 9.129623543070647,
+        "percentile": 24.05857740585774,
+        "isAnomaly": false,
+        "label": "05:20"
+      },
+      {
+        "timestamp": "2016-05-27 05:30:00",
+        "actual": 60,
+        "baseline": 47.5,
+        "expected": 59.453210786374854,
+        "residual": 0.5467892136251464,
+        "percentAbove": 0.9196966932363836,
+        "percentile": 2.7196652719665275,
+        "isAnomaly": false,
+        "label": "05:30"
+      },
+      {
+        "timestamp": "2016-05-27 05:40:00",
+        "actual": 50,
+        "baseline": 48.125,
+        "expected": 73.69999817375286,
+        "residual": -23.69999817375286,
+        "percentAbove": -32.157393162857986,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "05:40"
+      },
+      {
+        "timestamp": "2016-05-27 05:50:00",
+        "actual": 60,
+        "baseline": 51.25,
+        "expected": 58.86255361808915,
+        "residual": 1.1374463819108485,
+        "percentAbove": 1.932376888183964,
+        "percentile": 5.857740585774058,
+        "isAnomaly": false,
+        "label": "05:50"
+      },
+      {
+        "timestamp": "2016-05-27 06:00:00",
+        "actual": 50,
+        "baseline": 53.125,
+        "expected": 65.4567180811741,
+        "residual": -15.456718081174103,
+        "percentAbove": -23.613646596222466,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "06:00"
+      },
+      {
+        "timestamp": "2016-05-27 06:10:00",
+        "actual": 110,
+        "baseline": 83.125,
+        "expected": 54.52742148114341,
+        "residual": 55.47257851885659,
+        "percentAbove": 101.7333609623188,
+        "percentile": 87.23849372384937,
+        "isAnomaly": false,
+        "label": "06:10"
+      },
+      {
+        "timestamp": "2016-05-27 06:20:00",
+        "actual": 70,
+        "baseline": 86.875,
+        "expected": 116.58936805047631,
+        "residual": -46.58936805047631,
+        "percentAbove": -39.96022006938563,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "06:20"
+      },
+      {
+        "timestamp": "2016-05-27 06:30:00",
+        "actual": 50,
+        "baseline": 68.75,
+        "expected": 98.78543478410988,
+        "residual": -48.78543478410988,
+        "percentAbove": -49.38525086287038,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "06:30"
+      },
+      {
+        "timestamp": "2016-05-27 06:40:00",
+        "actual": 50,
+        "baseline": 61.875,
+        "expected": 62.066803307121454,
+        "residual": -12.066803307121454,
+        "percentAbove": -19.44163814497101,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "06:40"
+      },
+      {
+        "timestamp": "2016-05-27 06:50:00",
+        "actual": 50,
+        "baseline": 71.875,
+        "expected": 61.91748505419307,
+        "residual": -11.917485054193072,
+        "percentAbove": -19.24736614182946,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "06:50"
+      },
+      {
+        "timestamp": "2016-05-27 07:00:00",
+        "actual": 50,
+        "baseline": 101.25,
+        "expected": 63.226130950377154,
+        "residual": -13.226130950377154,
+        "percentAbove": -20.91877322172006,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "07:00"
+      },
+      {
+        "timestamp": "2016-05-27 07:10:00",
+        "actual": 60,
+        "baseline": 111.875,
+        "expected": 63.548324006333786,
+        "residual": -3.548324006333786,
+        "percentAbove": -5.583662609229677,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "07:10"
+      },
+      {
+        "timestamp": "2016-05-27 07:20:00",
+        "actual": 60,
+        "baseline": 98.125,
+        "expected": 70.57900601337806,
+        "residual": -10.579006013378063,
+        "percentAbove": -14.988884954504517,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "07:20"
+      },
+      {
+        "timestamp": "2016-05-27 07:30:00",
+        "actual": 190,
+        "baseline": 113.75,
+        "expected": 65.09134071959697,
+        "residual": 124.90865928040303,
+        "percentAbove": 191.89750571967699,
+        "percentile": 91.42259414225941,
+        "isAnomaly": false,
+        "label": "07:30"
+      },
+      {
+        "timestamp": "2016-05-27 07:40:00",
+        "actual": 130,
+        "baseline": 108.75,
+        "expected": 247.95150794530127,
+        "residual": -117.95150794530127,
+        "percentAbove": -47.57039347037231,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "07:40"
+      },
+      {
+        "timestamp": "2016-05-27 07:50:00",
+        "actual": 180,
+        "baseline": 90.625,
+        "expected": 191.33492910550314,
+        "residual": -11.334929105503136,
+        "percentAbove": -5.924129566145758,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "07:50"
+      },
+      {
+        "timestamp": "2016-05-27 08:00:00",
+        "actual": 360,
+        "baseline": 81.875,
+        "expected": 203.47292122364243,
+        "residual": 156.52707877635757,
+        "percentAbove": 76.92771983369451,
+        "percentile": 93.20083682008368,
+        "isAnomaly": false,
+        "label": "08:00"
+      },
+      {
+        "timestamp": "2016-05-27 08:10:00",
+        "actual": 100,
+        "baseline": 93.125,
+        "expected": 193.18901933109495,
+        "residual": -93.18901933109495,
+        "percentAbove": -48.23722365471711,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "08:10"
+      },
+      {
+        "timestamp": "2016-05-27 08:20:00",
+        "actual": 70,
+        "baseline": 109.375,
+        "expected": 106.24555678048216,
+        "residual": -36.24555678048216,
+        "percentAbove": -34.11489184001401,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "08:20"
+      },
+      {
+        "timestamp": "2016-05-27 08:30:00",
+        "actual": 80,
+        "baseline": 101.875,
+        "expected": 109.18586206698754,
+        "residual": -29.18586206698754,
+        "percentAbove": -26.730440658225028,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "08:30"
+      },
+      {
+        "timestamp": "2016-05-27 08:40:00",
+        "actual": 80,
+        "baseline": 109.375,
+        "expected": 91.92339243829707,
+        "residual": -11.923392438297071,
+        "percentAbove": -12.971010013909751,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "08:40"
+      },
+      {
+        "timestamp": "2016-05-27 08:50:00",
+        "actual": 90,
+        "baseline": 153.125,
+        "expected": 93.19678239799329,
+        "residual": -3.196782397993289,
+        "percentAbove": -3.4301424531391564,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "08:50"
+      },
+      {
+        "timestamp": "2016-05-27 09:00:00",
+        "actual": 90,
+        "baseline": 213.75,
+        "expected": 106.64806550079797,
+        "residual": -16.64806550079797,
+        "percentAbove": -15.610283620825175,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "09:00"
+      },
+      {
+        "timestamp": "2016-05-27 09:10:00",
+        "actual": 60,
+        "baseline": 147.5,
+        "expected": 101.96349685639537,
+        "residual": -41.963496856395366,
+        "percentAbove": -41.15541164255718,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "09:10"
+      },
+      {
+        "timestamp": "2016-05-27 09:20:00",
+        "actual": 70,
+        "baseline": 146.875,
+        "expected": 73.4747878121793,
+        "residual": -3.4747878121793008,
+        "percentAbove": -4.729224698221332,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "09:20"
+      },
+      {
+        "timestamp": "2016-05-27 09:30:00",
+        "actual": 50,
+        "baseline": 147.5,
+        "expected": 92.85099253390025,
+        "residual": -42.85099253390025,
+        "percentAbove": -46.15027945797692,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "09:30"
+      },
+      {
+        "timestamp": "2016-05-27 09:40:00",
+        "actual": 580,
+        "baseline": 126.875,
+        "expected": 66.78615956368664,
+        "residual": 513.2138404363134,
+        "percentAbove": 768.4434077197052,
+        "percentile": 99.581589958159,
+        "isAnomaly": true,
+        "label": "09:40"
+      },
+      {
+        "timestamp": "2016-05-27 09:50:00",
+        "actual": 660,
+        "baseline": 113.75,
+        "expected": 520.5498381883209,
+        "residual": 139.4501618116791,
+        "percentAbove": 26.78901261347233,
+        "percentile": 92.05020920502092,
+        "isAnomaly": false,
+        "label": "09:50"
+      },
+      {
+        "timestamp": "2016-05-27 10:00:00",
+        "actual": 300,
+        "baseline": 107.5,
+        "expected": 415.69477787953514,
+        "residual": -115.69477787953514,
+        "percentAbove": -27.83166497055744,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "10:00"
+      },
+      {
+        "timestamp": "2016-05-27 10:10:00",
+        "actual": 260,
+        "baseline": 134.375,
+        "expected": 263.4748010302478,
+        "residual": -3.474801030247818,
+        "percentAbove": -1.3188361910363104,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "10:10"
+      },
+      {
+        "timestamp": "2016-05-27 10:20:00",
+        "actual": 290,
+        "baseline": 135,
+        "expected": 251.38595037917844,
+        "residual": 38.61404962082156,
+        "percentAbove": 15.360464482035688,
+        "percentile": 85.98326359832636,
+        "isAnomaly": false,
+        "label": "10:20"
+      },
+      {
+        "timestamp": "2016-05-27 10:30:00",
+        "actual": 240,
+        "baseline": 178.75,
+        "expected": 259.14427857515443,
+        "residual": -19.14427857515443,
+        "percentAbove": -7.387498068803552,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "10:30"
+      },
+      {
+        "timestamp": "2016-05-27 10:40:00",
+        "actual": 240,
+        "baseline": 161.875,
+        "expected": 223.80945890626927,
+        "residual": 16.19054109373073,
+        "percentAbove": 7.234073650350623,
+        "percentile": 73.64016736401673,
+        "isAnomaly": false,
+        "label": "10:40"
+      },
+      {
+        "timestamp": "2016-05-27 10:50:00",
+        "actual": 180,
+        "baseline": 136.875,
+        "expected": 221.2395226825251,
+        "residual": -41.23952268252509,
+        "percentAbove": -18.64021499526696,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "10:50"
+      },
+      {
+        "timestamp": "2016-05-27 11:00:00",
+        "actual": 190,
+        "baseline": 140.625,
+        "expected": 183.8287103783711,
+        "residual": 6.171289621628887,
+        "percentAbove": 3.3570869364892135,
+        "percentile": 32.94979079497908,
+        "isAnomaly": false,
+        "label": "11:00"
+      },
+      {
+        "timestamp": "2016-05-27 11:10:00",
+        "actual": 70,
+        "baseline": 163.125,
+        "expected": 214.3480785615547,
+        "residual": -144.3480785615547,
+        "percentAbove": -67.34283765464313,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "11:10"
+      },
+      {
+        "timestamp": "2016-05-27 11:20:00",
+        "actual": 400,
+        "baseline": 121.25,
+        "expected": 86.55869961375765,
+        "residual": 313.44130038624235,
+        "percentAbove": 362.11415118859287,
+        "percentile": 98.5355648535565,
+        "isAnomaly": true,
+        "label": "11:20"
+      },
+      {
+        "timestamp": "2016-05-27 11:30:00",
+        "actual": 620,
+        "baseline": 131.875,
+        "expected": 291.9144757691318,
+        "residual": 328.0855242308682,
+        "percentAbove": 112.39097457103951,
+        "percentile": 98.74476987447699,
+        "isAnomaly": true,
+        "label": "11:30"
+      },
+      {
+        "timestamp": "2016-05-27 11:40:00",
+        "actual": 330,
+        "baseline": 203.125,
+        "expected": 444.3829283288533,
+        "residual": -114.38292832885332,
+        "percentAbove": -25.739721541284638,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "11:40"
+      },
+      {
+        "timestamp": "2016-05-27 11:50:00",
+        "actual": 250,
+        "baseline": 201.25,
+        "expected": 300.35504033108094,
+        "residual": -50.35504033108094,
+        "percentAbove": -16.765172402492283,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "11:50"
+      },
+      {
+        "timestamp": "2016-05-27 12:00:00",
+        "actual": 260,
+        "baseline": 190,
+        "expected": 244.63320173913152,
+        "residual": 15.366798260868478,
+        "percentAbove": 6.281566913903659,
+        "percentile": 72.17573221757321,
+        "isAnomaly": false,
+        "label": "12:00"
+      },
+      {
+        "timestamp": "2016-05-27 12:10:00",
+        "actual": 240,
+        "baseline": 173.125,
+        "expected": 254.49120686994803,
+        "residual": -14.49120686994803,
+        "percentAbove": -5.694187649223351,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "12:10"
+      },
+      {
+        "timestamp": "2016-05-27 12:20:00",
+        "actual": 230,
+        "baseline": 176.25,
+        "expected": 215.9400430663897,
+        "residual": 14.059956933610295,
+        "percentAbove": 6.511046647002673,
+        "percentile": 69.4560669456067,
+        "isAnomaly": false,
+        "label": "12:20"
+      },
+      {
+        "timestamp": "2016-05-27 12:30:00",
+        "actual": 220,
+        "baseline": 126.25,
+        "expected": 201.38718678636488,
+        "residual": 18.61281321363512,
+        "percentAbove": 9.242302606560528,
+        "percentile": 76.88284518828452,
+        "isAnomaly": false,
+        "label": "12:30"
+      },
+      {
+        "timestamp": "2016-05-27 12:40:00",
+        "actual": 90,
+        "baseline": 165.625,
+        "expected": 190.58835680491055,
+        "residual": -100.58835680491055,
+        "percentAbove": -52.77780788459941,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "12:40"
+      },
+      {
+        "timestamp": "2016-05-27 12:50:00",
+        "actual": 70,
+        "baseline": 157.5,
+        "expected": 122.92981560104845,
+        "residual": -52.929815601048446,
+        "percentAbove": -43.056938906363264,
+        "percentile": 0,
+        "isAnomaly": false,
+        "label": "12:50"
+      }
+    ]
+  },
+  "context": {
+    "highNormal": {
+      "timestamp": "2016-05-17 17:50:00",
+      "actual": 380,
+      "baseline": 171.25,
+      "expected": 389.0531249772346,
+      "residual": -9.053124977234575,
+      "percentAbove": -2.32696369622126,
+      "percentile": 0,
+      "isAnomaly": false
+    },
+    "lowerUnusual": {
+      "timestamp": "2016-05-11 06:00:00",
+      "actual": 320,
+      "baseline": 60,
+      "expected": 100.15816328338258,
+      "residual": 219.84183671661742,
+      "percentAbove": 219.4946767290528,
+      "percentile": 95.92050209205021,
+      "isAnomaly": true
+    }
+  },
+  "failures": [
+    {
+      "timestamp": "2016-05-27 09:40:00",
+      "actual": 580,
+      "expected": 66.78615956368664,
+      "residual": 513.2138404363134,
+      "absoluteError": 513.2138404363134,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-16 17:40:00",
+      "actual": 630,
+      "expected": 130.77531309839807,
+      "residual": 499.2246869016019,
+      "absoluteError": 499.2246869016019,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-13 11:10:00",
+      "actual": 600,
+      "expected": 115.77713408697981,
+      "residual": 484.2228659130202,
+      "absoluteError": 484.2228659130202,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-21 09:40:00",
+      "actual": 790,
+      "expected": 306.61767427166785,
+      "residual": 483.38232572833215,
+      "absoluteError": 483.38232572833215,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-26 11:40:00",
+      "actual": 600,
+      "expected": 129.69119128522158,
+      "residual": 470.3088087147784,
+      "absoluteError": 470.3088087147784,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-26 09:50:00",
+      "actual": 820,
+      "expected": 360.05669286608355,
+      "residual": 459.94330713391645,
+      "absoluteError": 459.94330713391645,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-13 07:50:00",
+      "actual": 560,
+      "expected": 112.91223922664312,
+      "residual": 447.0877607733569,
+      "absoluteError": 447.0877607733569,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-13 14:20:00",
+      "actual": 620,
+      "expected": 194.52290297778177,
+      "residual": 425.47709702221823,
+      "absoluteError": 425.47709702221823,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-26 16:30:00",
+      "actual": 710,
+      "expected": 300.5622110377508,
+      "residual": 409.4377889622492,
+      "absoluteError": 409.4377889622492,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    },
+    {
+      "timestamp": "2016-05-21 11:10:00",
+      "actual": 590,
+      "expected": 199.10101167454522,
+      "residual": 390.89898832545475,
+      "absoluteError": 390.89898832545475,
+      "canObserve": "Calendar time, earlier outdoor weather, and earlier consumption patterns",
+      "cannotObserve": "Occupancy, appliance state, events, maintenance, holidays, and sensor faults"
+    }
+  ]
+}
