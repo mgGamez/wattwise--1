@@ -1,0 +1,23 @@
+{
+  "model_name": "linear_regression",
+  "model_label": "Linear Regression",
+  "feature_columns": [
+    "hour",
+    "minute",
+    "day_of_week",
+    "month",
+    "is_weekend",
+    "previous_outdoor_temperature_c",
+    "previous_outdoor_humidity_pct",
+    "previous_hour_consumption",
+    "previous_day_same_hour",
+    "rolling_24h_average",
+    "rolling_7day_average"
+  ],
+  "anomaly_threshold_wh": 411.94520984775613,
+  "training_period_start": "2016-01-18T17:00:00",
+  "training_period_end": "2016-05-01T17:40:00",
+  "measurement_interval_minutes": 10,
+  "target": "consumption_wh",
+  "positive_calibration_residual_count": 753
+}

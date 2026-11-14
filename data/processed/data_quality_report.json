@@ -1,0 +1,41 @@
+{
+  "source_file": "energydata_complete.csv",
+  "source_rows": 19735,
+  "cleaned_rows": 19735,
+  "removed_rows": 0,
+  "date_range": {
+    "start": "2016-01-11T17:00:00",
+    "end": "2016-05-27T18:00:00"
+  },
+  "expected_interval_minutes": 10,
+  "interval_counts": {
+    "0 days 00:10:00": 19734
+  },
+  "checks": {
+    "invalid_timestamp_rows": 0,
+    "duplicate_timestamp_rows": 0,
+    "missing_consumption_rows": 0,
+    "negative_consumption_rows": 0,
+    "non_finite_consumption_rows": 0,
+    "missing_expected_timestamps": 0,
+    "unexpected_interval_rows": 0,
+    "missing_temperature_rows": 0,
+    "missing_humidity_rows": 0
+  },
+  "consumption_wh_summary": {
+    "count": 19735.0,
+    "mean": 97.6949581960983,
+    "std": 102.52489053740624,
+    "min": 10.0,
+    "25%": 50.0,
+    "50%": 60.0,
+    "75%": 100.0,
+    "max": 1080.0
+  },
+  "cleaning_decisions": [
+    "Parsed timestamps and sorted rows chronologically.",
+    "Kept the first row for any duplicate timestamp.",
+    "Removed rows with invalid timestamps, missing/non-finite consumption, or negative consumption.",
+    "Did not interpolate values, because future-aware interpolation could leak information."
+  ]
+}

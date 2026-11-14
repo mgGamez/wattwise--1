@@ -1,0 +1,66 @@
+{
+  "dataset": {
+    "name": "Appliances Energy Prediction",
+    "source": "UCI Machine Learning Repository",
+    "source_url": "https://archive.ics.uci.edu/dataset/374/appliances+energy+prediction",
+    "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "raw_rows": 19735,
+    "cleaned_rows": 19735,
+    "modeling_rows": 18727,
+    "measurement_interval_minutes": 10,
+    "energy_unit": "Wh per 10-minute interval",
+    "date_range": {
+      "start": "2016-01-11T17:00:00",
+      "end": "2016-05-27T18:00:00"
+    }
+  },
+  "split": {
+    "method": "chronological 80/20 split; no shuffling",
+    "train_rows": 14981,
+    "test_rows": 3746,
+    "train_start": "2016-01-18T17:00:00",
+    "train_end": "2016-05-01T17:40:00",
+    "test_start": "2016-05-01T17:50:00",
+    "test_end": "2016-05-27T18:00:00"
+  },
+  "models": {
+    "Baseline": {
+      "mae_wh": 46.14928940075763,
+      "rmse_wh": 84.15885389457519
+    },
+    "Linear Regression": {
+      "mae_wh": 45.35705104991811,
+      "rmse_wh": 79.85783581397585
+    },
+    "Random Forest": {
+      "mae_wh": 65.77893582726819,
+      "rmse_wh": 97.52839175955711
+    },
+    "Gradient Boosting": {
+      "mae_wh": 59.479508972401646,
+      "rmse_wh": 86.73859084550928
+    }
+  },
+  "selection_rule": "Lowest test RMSE; test MAE breaks an exact RMSE tie",
+  "best_model": "Linear Regression",
+  "anomaly_detection": {
+    "method": "95th percentile of positive residuals",
+    "threshold_source": "latest 20% of the training period",
+    "fit_period_start": "2016-01-18T17:00:00",
+    "fit_period_end": "2016-04-10T22:10:00",
+    "calibration_period_start": "2016-04-10T22:20:00",
+    "calibration_period_end": "2016-05-01T17:40:00",
+    "calibration_rows": 2997,
+    "positive_calibration_residuals": 753,
+    "threshold_wh": 411.94520984775613,
+    "comparison": "positive residual strictly greater than threshold",
+    "test_anomaly_count": 24,
+    "test_anomaly_rate": 0.006406833956219968,
+    "interpretation": "Unexpectedly high consumption requiring investigation; not proof of energy waste."
+  },
+  "failure_analysis": {
+    "rows_saved": 10,
+    "ranking": "largest absolute errors in the held-out test period",
+    "path": "results/failure_analysis.csv"
+  }
+}
